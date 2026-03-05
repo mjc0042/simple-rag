@@ -28,7 +28,7 @@ def main():
     elif mode.startswith('g'):
         mode = "graphrag"
 
-    directory = sys.argv[2]
+    directory = sys.argv[2] if len(sys.argv) == 3 else sys.argv[1]
 
     client = OpenAI(api_key=OPENAI_API_KEY)
 
