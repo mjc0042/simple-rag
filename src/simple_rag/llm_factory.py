@@ -1,9 +1,6 @@
 """LLM Factory for creating LangChain chat models based on model name."""
 from typing import Any
 
-#from langchain_anthropic import ChatAnthropic
-#from langchain_openai import ChatOpenAI
-#from langchain_deepseek import ChatDeepSeek
 from langchain.chat_models import init_chat_model
 
 
@@ -27,31 +24,3 @@ def create_chat_model(model_name: str, api_key: str, **kwargs: Any):
                            temperature=temperature,
                            api_key=api_key
             )
-
-    # Map model prefixes to their corresponding ChatModel
-    if model_name.startswith("claude"):
-        return ChatAnthropic(
-            model=model_name,
-            api_key=api_key,
-            temperature=temperature,
-        )
-    elif model_name.startswith("deepseek"):
-        return ChatDeepSeek(
-            model=model_name,
-            api_key=api_key,
-            temperature=temperature,
-        )
-    elif model_name.startswith("gpt") or model_name.startswith("o1") or model_name.startswith("o3"):
-        # OpenAI models
-        return ChatOpenAI(
-            model=model_name,
-            api_key=api_key,
-            temperature=temperature,
-        )
-    else:
-        # Default to OpenAI-compatible API (e.g., for Ollama, local models, etc.)
-        return ChatOpenAI(
-            model=model_name,
-            api_key=api_key,
-            temperature=temperature,
-        )
