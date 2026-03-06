@@ -1,27 +1,25 @@
 import json
-from openai import OpenAI
+from typing import Any
+
+from langchain_core.messages import HumanMessage, SystemMessage
 
 
 class EntityExtractor:
-    def __init__(self, client: OpenAI):
-        self.client = client
+    def __init__(self, chat_model: Any):
+        self.chat_model = chat_model
 
     def extract(self, text: str) -> dict:
-        response = self.client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {
-                    "role": "system",
-                    "content": (
-                        "Extract named entities and relationships from the text.\n"
-                        "Return JSON with keys: entities (list of strings), "
-                        "relations (list of {subject, predicate, object})."
-                    ),
-                },
-                {"role": "user", "content": text},
-            ],
-            response_format={"type": "json_object"},
-            temperature=0,
-        )
+        messages = [
+            SystemMessage(
+                content=(
+                    "Extract named entities and relationships from the text.\n"
+                    "Return JSON with keys: entities (list of strings), "
+                    "relations (list of {subject, predicate, object})."
+                )
+            ),
+            HumanMessage(content=text),
+        ]
 
-        return json.loads(response.choices[0].message.content)
+        response = self.chat_model.invoke(messages)
+
+        return json.loads(response.content)

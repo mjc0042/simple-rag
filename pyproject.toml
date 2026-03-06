@@ -1,17 +1,19 @@
 [project]
 name = "simple-rag"
 version = "0.1.0"
-description = "Add your description here"
+description = "RAG application using a specified directory of files"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
     "faiss-cpu>=1.13.2",
     "networkx>=3.6.1",
     "numpy>=2.4.2",
-    "openai>=2.17.0",
     "pypdf>=6.7.0",
     "python-dotenv>=1.2.1",
     "tqdm>=4.67.3",
+    "langchain-huggingface>=1.2.1",
+    "langchain>=1.2.10",
+    "sentence-transformers>=5.2.3",
 ]
 
 [project.scripts]

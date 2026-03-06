@@ -1,6 +1,7 @@
-from openai import OpenAI
+from typing import Any
 
-from simple_rag.config import CHAT_MODEL
+from langchain_core.messages import HumanMessage, SystemMessage
+
 from .embedder import Embedder
 from .vector_store import VectorStore
 
@@ -8,11 +9,11 @@ class RAGEngine:
 
     def __init__(
         self,
-        client: OpenAI,
+        chat_model: Any,
         embedder: Embedder,
         store: VectorStore,
     ):
-        self.client = client
+        self.chat_model = chat_model
         self.embedder = embedder
         self.store = store
 
@@ -24,30 +25,24 @@ class RAGEngine:
             f"[{d.source}]\n{d.text}" for d in docs
         )
 
-        response = self.client.chat.completions.create(
-            model=CHAT_MODEL,
-            messages=[
-                {
-                    "role": "system",
-                    "content": "Answer the question using only the provided context."
-                },
-                {
-                    "role": "user",
-                    "content": f"Context:\n{context}\n\nQuestion:\n{question}"
-                }
-            ],
-        )
+        messages = [
+            SystemMessage(content="Answer the question using only the provided context."),
+            HumanMessage(content=f"Context:\n{context}\n\nQuestion:\n{question}")
+        ]
 
-        return response.choices[0].message.content
+        response = self.chat_model.invoke(messages)
+
+        return response.content
+
 
 class GraphRAGEngine:
     def __init__(
         self,
-        client,
+        chat_model: Any,
         entity_extractor,
         graph_retriever,
     ):
-        self.client = client
+        self.chat_model = chat_model
         self.entity_extractor = entity_extractor
         self.retriever = graph_retriever
 
@@ -61,18 +56,11 @@ class GraphRAGEngine:
             f"[{d.source}]\n{d.text}" for d in docs
         )
 
-        response = self.client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "Answer using only the provided context."
-                },
-                {
-                    "role": "user",
-                    "content": f"Context:\n{context}\n\nQuestion:\n{question}"
-                },
-            ],
-        )
+        messages = [
+            SystemMessage(content="Answer using only the provided context."),
+            HumanMessage(content=f"Context:\n{context}\n\nQuestion:\n{question}"),
+        ]
 
-        return response.choices[0].message.content
+        response = self.chat_model.invoke(messages)
+
+        return response.content

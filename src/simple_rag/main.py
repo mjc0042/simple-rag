@@ -2,10 +2,9 @@ import sys
 import os
 import uuid
 
-from openai import OpenAI
-
 from .chat_cli import ChatCLI
-from .config import OPENAI_API_KEY
+from .config import API_KEY, MODEL
+from .llm_factory import create_chat_model
 from .loaders.text_loader import TextLoader
 from .loaders.pdf_loader import PDFLoader
 from .rag.chunker import TextChunker
@@ -30,19 +29,17 @@ def main():
 
     directory = sys.argv[2] if len(sys.argv) == 3 else sys.argv[1]
 
-    client = OpenAI(api_key=OPENAI_API_KEY)
+    chat_model = create_chat_model(MODEL, API_KEY)
 
     # Dependency injection
-    embedder = Embedder(client)
+    embedder = Embedder()
     chunker = TextChunker(chunk_size=800, overlap=200)
-    entity_extractor = EntityExtractor(client)
+    entity_extractor = EntityExtractor(chat_model)
     graph = KnowledgeGraph()
-
 
     loaders = [TextLoader(), PDFLoader()]
 
     documents = []
-
     for root, _, files in os.walk(directory):
         for file in files:
             path = os.path.join(root, file)
@@ -58,6 +55,7 @@ def main():
     print("Embedding chunks...")
     embeddings = embedder.embed([c.text for c in chunks])
 
+    print("Creating vector store...")
     store = VectorStore(dim=embeddings.shape[1])
     store.add(embeddings, chunks)
 
@@ -76,10 +74,10 @@ def main():
             print("...")
 
         retriever = GraphRetriever(store, graph, embedder)
-        rag = GraphRAGEngine(client, entity_extractor, retriever)
+        rag = GraphRAGEngine(chat_model, entity_extractor, retriever)
     
     else:
-        rag = RAGEngine(client=client, embedder=embedder, store=store)
+        rag = RAGEngine(chat_model=chat_model, embedder=embedder, store=store)
 
     ChatCLI(rag).run()
 
